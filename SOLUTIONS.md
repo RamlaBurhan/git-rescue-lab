@@ -2,7 +2,7 @@
 
 > Try each task with the [cheat sheet](CHEATSHEET.md) first. Only look here if you're really stuck.
 
-Run everything inside `~/brewly-lab/brewly`.
+Run everything inside `brewly-lab/brewly` (inside your `git-rescue-lab` folder). Check with `./check.sh <number>`.
 
 ---
 
@@ -54,9 +54,12 @@ git push -u origin feature/student-discount
 ```bash
 git switch main
 git remote -v                                    # only origin
-git remote add backup ~/brewly-lab/backup.git
+cat backup-url.txt                               # https://github.com/<you>/brewly-backup.git
+git remote add backup https://github.com/<you>/brewly-backup.git
 git remote -v                                    # origin and backup
 git push backup main
+git ls-remote backup                             # refs/heads/main is there
+git log --oneline -3                             # origin/main AND backup/main
 ```
 **Why:** you can have as many remotes as you like. `git push <remote> <branch>` says exactly where to send it.
 
@@ -138,28 +141,31 @@ git push
 ```
 **Why:** a merge has two parents. `-m 1` says "go back to parent 1", which is `main`.
 
-### Task 15: Rebase, then merge
+### Task 15: Rebase onto the team's main
 ```bash
-git log --oneline --graph --all      # hot-chocolate branches off an OLD main
+./teammate-push.sh                   # Priya pushes "Add seasonal menu" to main
+git log --oneline -1 origin/main     # still the old one
+git fetch                            # download Priya's commit
+git log --oneline -1 origin/main     # Add seasonal menu
 git switch feature/hot-chocolate
-git rebase main                      # "Successfully rebased"
-git switch main
-git merge feature/hot-chocolate      # "Fast-forward"
-git log --oneline --graph -6         # straight line
+git rebase origin/main               # "Successfully rebased"
+git log --oneline --graph -4         # your 2 commits on top of Priya's
+git push -u origin feature/hot-chocolate
 ```
-**Why:** rebase moved Tom's 2 commits on top of the latest `main`, so `main` could just slide forward. No merge commit was needed.
+**Why:** rebase lifts your commits off the old starting point and replays them on top of the latest `main`. The branch is up to date and has a clean, straight history, ready for a PR. It's safe because nobody else had your branch yet.
 
-### Task 16: Merge without rebase
+### Task 16: Update a branch with merge
 ```bash
-git switch main
-git merge feature/iced-coffee        # editor opens: save and close (vim: :wq)
-git log --oneline --graph -8         # see the bubble and the merge commit
+git switch feature/iced-coffee
+git merge origin/main                # editor opens: save and close (vim: :wq)
+git log --oneline --graph -5         # merge commit with two lines joining
+git push -u origin feature/iced-coffee
 ```
-**Why:** both `main` and `iced-coffee` had new commits, so Git tied them together with a merge commit. Compare this with Task 15's straight line.
+**Why:** merge brings `main`'s new commits into your branch **without changing** your existing commits. It adds a merge commit instead. Compare this with Task 15's straight line.
 
 ### Task 17: Your first pull request
 ```bash
-cd ~/path/to/git-rescue-lab          # your own GitHub copy
+cd ../..                             # up to your lab folder (git-rescue-lab)
 git switch main
 git pull
 git switch -c add-my-name
@@ -178,4 +184,4 @@ git branch -d add-my-name            # optional tidy-up
 
 ---
 
-🎉 Run `./check.sh all` from the lab folder and enjoy the **17 / 17**.
+🎉 Run `./check.sh all` and enjoy the **17 / 17**.

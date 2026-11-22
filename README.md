@@ -47,19 +47,19 @@ You'll have **your own copy of both** on GitHub.
 
 These steps set up the lab on **real GitHub**, which is the recommended way.
 
-> 💻 **Want to run it offline on your laptop instead?** Follow **Option A** in **[SETUP.md](SETUP.md)**. SETUP.md also has a quick list of the commands for both ways.
+> 💻 **Want to run it offline on your laptop instead?** Follow **Option B** in **[SETUP.md](SETUP.md)**. SETUP.md also has a quick list of the commands for both ways.
 
-**Step 1: Log in to GitHub from your terminal**
+**Step 1: Log in to GitHub** · 💻 *Terminal*
 ```bash
 gh auth login
 ```
 Choose **GitHub.com**, then **HTTPS**, then **Login with a web browser**, and follow the prompts.
 
-**Step 2: Get your own copy of the textbook**
+**Step 2: Get your own copy of the textbook** · 🌐 *GitHub website*
 
-On this page, click the green **Use this template** button, then **Create a new repository**. Call it `git-rescue-lab`.
+Go to **https://github.com/RamlaBurhan/git-rescue-lab** (the link I sent you). Near the top right, click the green **Use this template** button, then **Create a new repository**. Call it `git-rescue-lab`.
 
-**Step 3: Download your textbook to your laptop**
+**Step 3: Download your textbook to your laptop** · 💻 *Terminal*
 ```bash
 git clone https://github.com/<your-username>/git-rescue-lab.git
 cd git-rescue-lab
@@ -67,19 +67,21 @@ chmod +x *.sh
 ```
 (`chmod +x` lets you run the scripts.)
 
-**Step 4: Create an empty exercise book on GitHub**
+**Step 4: Create an empty exercise book** · 🌐 *GitHub website*
 
 On github.com, click **New repository** and call it `brewly`. **Don't** tick "Add a README". It must be completely empty.
 
-**Step 5: Fill the exercise book with Dan's mess**
+**Step 5: Fill the exercise book with Dan's mess** · 💻 *Terminal, inside the `git-rescue-lab` folder (where you ended up after Step 3)*
+
+Replace `<your-username>` with your GitHub username:
 ```bash
 ./setup.sh --github https://github.com/<your-username>/brewly.git
 ```
 This builds the messy project and puts it on your GitHub. It also creates `brewly-backup`, which you'll need in Task 6.
 
-**Step 6: Go into the exercise book and start**
+**Step 6: Go into the exercise book and start** · 💻 *Terminal*
 ```bash
-cd ~/brewly-lab/brewly
+cd brewly-lab/brewly
 git status
 ```
 Then open **[TASKS.md](TASKS.md)** and do Task 1. 🎉
@@ -87,8 +89,16 @@ Then open **[TASKS.md](TASKS.md)** and do Task 1. 🎉
 ---
 
 **Where do you type each command?**
-- Doing a task: inside `~/brewly-lab/brewly`
-- Checking your answer (`./check.sh 1`): inside `git-rescue-lab`
+Everything happens in **one folder**. Open `git-rescue-lab` in VS Code and you'll see:
+```
+git-rescue-lab/            ← the textbook
+├── TASKS.md, CHEATSHEET.md ...
+├── check.sh ...
+└── brewly-lab/
+    └── brewly/            ← the exercise book: do the tasks in here
+```
+- **Doing a task:** inside `brewly-lab/brewly`
+- **Checking your answer:** from the same place, run `./check.sh 1`
 
 > No internet? Run `./setup.sh` on its own in Step 5 and skip Step 4. Everything still works, it just stays on your laptop.
 
@@ -96,13 +106,13 @@ Then open **[TASKS.md](TASKS.md)** and do Task 1. 🎉
 
 1. Open **[TASKS.md](TASKS.md)** and read Task 1.
 2. Stuck? Open **[CHEATSHEET.md](CHEATSHEET.md)**. Each task has a toolbox with the command you need hidden among others.
-3. Check your work from the `git-rescue-lab` folder:
+3. Check your work from inside `brewly-lab/brewly`:
    ```bash
    ./check.sh 1       # one task
    ./check.sh all     # everything
    ```
 4. Really stuck? **[SOLUTIONS.md](SOLUTIONS.md)** has the answers.
-5. Made a mess? Start again: `./setup.sh --github <same-url> --force`. This resets your GitHub `brewly` repo back to the beginning.
+5. Made a mess? Go back to the `git-rescue-lab` folder and run `./setup.sh --github <same-url> --force`. This resets your GitHub `brewly` repo back to the beginning.
 
 ## Tasks
 

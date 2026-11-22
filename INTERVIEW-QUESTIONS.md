@@ -97,13 +97,13 @@ Squashing combines several small commits into one. It makes the history clean an
 **16. What's the difference between merge and rebase?** *(Tasks 15, 16)*
 <details><summary>Answer</summary>
 
-Both bring work from one branch into another. **Merge** joins the branches with a merge commit and keeps history exactly as it happened. **Rebase** replays your commits on top of the other branch, which gives a straight-line history but creates **new commit IDs**. So only rebase branches nobody else uses.
+Both bring work from one branch into another. **Merge** joins the branches with a merge commit and keeps history exactly as it happened. **Rebase** replays your commits on top of the other branch, which gives a straight-line history but creates **new commit IDs**. Teams typically rebase their **own** branch onto the latest `origin/main` before a PR, and use merge for shared branches.
 </details>
 
-**17. What's a fast-forward merge?** *(Task 15)*
+**17. You try to `git push`, but it's rejected because someone pushed first. What do you do?** *(Task 15)*
 <details><summary>Answer</summary>
 
-When the branch you're merging into hasn't moved since your branch started, Git just slides the pointer forward. No merge commit is needed.
+Run `git pull --rebase` (or `git fetch` then `git rebase origin/main`). It puts your commits on top of the teammate's new ones, and then `git push` works. Fix any conflicts on the way. Never use `--force` on a shared branch to get around a rejection.
 </details>
 
 **18. What's a pull request, and why do teams use them?** *(Task 17)*

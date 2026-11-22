@@ -153,8 +153,15 @@ After you push:     0b84403 (HEAD -> main, origin/main) Add Amina to team   ← 
 | `git remote rename <old> <new>` | Renames a remote |
 | `git push` | Pushes to the branch's linked remote (usually origin) |
 | `git push <remote> <branch>` | Pushes a branch to **a specific remote** |
+| `git ls-remote <remote>` | Lists the branches on a remote, straight from the terminal |
+| `cat <file>` | Prints a file in the terminal (handy for reading a saved link) |
 
-💡 On real GitHub the address looks like `https://github.com/user/repo.git` or `git@github.com:user/repo.git`. In this lab it's a folder path.
+💡 Addresses look like `https://github.com/user/repo.git` or `git@github.com:user/repo.git`. GitLab and Bitbucket URLs work exactly the same way.
+
+**Where you'll meet more than one remote at work**
+- **Forks:** `origin` = your fork, `upstream` = the original project you pull updates from
+- **Backups or mirrors:** the same project on GitHub *and* GitLab
+- **Deploys:** some hosting platforms deploy when you push to their remote
 
 ---
 
@@ -279,34 +286,38 @@ Edit the file so it looks exactly how you want, **delete all three marker lines*
 
 ---
 
-## Task 15: Rebase, then merge
+## Task 15: Rebase onto the team's main
 
 | Command | What it does |
 |---|---|
-| `git log --oneline --graph --all` | Draws a picture of all the branches |
-| `git switch <branch>` | Moves you to a branch |
-| `git rebase <branch>` | Replays **your** commits on top of the other branch (new commit IDs) |
-| `git rebase --abort` | 🆘 Cancels a rebase that went wrong |
+| `git fetch` | Downloads the team's new commits and updates `origin/main`. Your branches don't change. |
+| `git pull` | Fetch **and** merge into the branch you're on |
+| `git log --oneline --graph --all` | Draws all the branches, so you can see where yours started |
+| `git rebase origin/main` | Replays **your** commits on top of the latest `origin/main` (new commit IDs) |
 | `git rebase --continue` | Carries on after you've fixed a conflict during a rebase |
-| `git merge <branch>` | Brings a branch's work into the one you're on |
+| `git rebase --abort` | 🆘 Cancels the rebase and puts everything back |
+| `git push -u origin <branch>` | Pushes a **new** branch and links it |
 
-💡 You run `rebase` while you're **on the feature branch**, and give it the name of the branch to move on top of.
+💡 **Fetch first, then rebase.** `origin/main` is only as fresh as your last `fetch`.
+
+💡 You'll often meet rebase in a team in another place too. If `git push` is **rejected** because someone pushed first, `git pull --rebase` puts your commits on top of theirs. Then `git push` works.
 
 ---
 
-## Task 16: Merge without rebase
+## Task 16: Update a branch with merge
 
 | Command | What it does |
 |---|---|
-| `git merge <branch>` | Joins the branch into the one you're on. If they've split apart, this makes a **merge commit**. |
+| `git merge origin/main` | Brings the latest `origin/main` **into** the branch you're on, with a merge commit |
 | `git merge --abort` | 🆘 Cancels the merge |
-| `git rebase <branch>` | Not this time 😉 |
-| `git log --oneline --graph -8` | Shows the "bubble" where the two lines join |
+| `git rebase origin/main` | Not this time 😉 |
+| `git log --oneline --graph -5` | Shows the "bubble" where the two lines join |
 | `git log --oneline --merges` | Lists only the merge commits |
+| `git push -u origin <branch>` | Pushes a **new** branch and links it |
 
 **Fast-forward vs merge commit**
-- **Fast-forward**: `main` hasn't changed since the branch started (or the branch was rebased). Git just slides `main` forward, and no merge commit is made.
-- **Merge commit**: both sides have new commits. Git ties them together with a new commit that has **two parents**.
+- **Fast-forward**: the branch you're merging into hasn't moved, so Git just slides it forward. No merge commit.
+- **Merge commit**: both sides have new commits, so Git ties them together with a commit that has **two parents**.
 
 ---
 

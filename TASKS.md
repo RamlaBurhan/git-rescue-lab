@@ -1,6 +1,10 @@
 # 🧾 Tasks
 
-Work inside `~/brewly-lab/brewly`. After each task, go back to the lab folder and run `./check.sh <number>`.
+Do the tasks inside **`brewly-lab/brewly`** (it's inside your `git-rescue-lab` folder):
+```bash
+cd brewly-lab/brewly
+```
+After each task, check it **from the same place** with `./check.sh <number>`, for example `./check.sh 1`.
 
 🧰 **Stuck?** Open **[CHEATSHEET.md](CHEATSHEET.md)**. Each task has a toolbox of commands there. One of them is the one you need. Read them all and pick the right one.
 
@@ -79,17 +83,29 @@ Marketing wants a student discount.
 
 ## 🟢 Task 6: Push to a second remote
 
-Priya: *"Last month GitHub went down for a whole afternoon and we couldn't ship anything. So we now keep a **backup** copy of the repo somewhere else. Can you connect it and push `main` there?"*
+Priya: *"Last month GitHub went down for a whole afternoon and we couldn't ship anything. So we now keep a **backup** copy of the project in a second repo. Here's the link. Can you connect it and push `main` there?"*
 
-A repo can have **more than one remote**. `origin` is just the default name for the first one.
+A project can have **more than one remote**. A remote is just a **nickname for a URL**, and `origin` is simply the default nickname for the first one.
+
+```
+origin  →  https://github.com/<you>/brewly.git          (already set up)
+backup  →  https://github.com/<you>/brewly-backup.git   (you'll add this)
+```
+
+Do all of this in the terminal, with no website:
 
 1. Go back to `main`.
-2. See your current remotes: `git remote -v`. Right now there's only `origin`.
-3. Add a new remote called **`backup`** that points to `~/brewly-lab/backup.git`
-4. Run `git remote -v` again. You should now see two.
-5. Push `main` to **backup**. This time you have to tell `push` which remote to use.
+2. List your remotes: `git remote -v`. Right now there's only `origin`.
+3. Get the link Priya gave you (setup saved it for you):
+   ```bash
+   cat backup-url.txt
+   ```
+4. Add a remote called **`backup`** that points to that link.
+5. Run `git remote -v` again. You should now see **two** remotes.
+6. Push `main` to **backup**. This time you have to tell `push` which remote to use.
+7. Check from the terminal what's on the backup remote: `git ls-remote backup`. You'll see `refs/heads/main`.
 
-👀 Run `git log --oneline -3`. You'll see a new label: `backup/main`. 
+👀 Run `git log --oneline -3`. You'll see `origin/main` **and** a new `backup/main` label. They're tracked separately. If you push to only one, they'll drift apart.
 
 **Check:** `./check.sh 6`  🧰 [Toolbox](CHEATSHEET.md#task-6-push-to-a-second-remote)
 
@@ -126,7 +142,7 @@ Finance is panicking: `prices.csv` has gone! Someone deleted it during a "clean-
 3. Bring the file back from that commit.
 4. Commit it.
 
-**Check:** `./check.sh 6`  🧰 [Toolbox](CHEATSHEET.md#task-8-bring-back-a-deleted-file)
+**Check:** `./check.sh 8`  🧰 [Toolbox](CHEATSHEET.md#task-8-bring-back-a-deleted-file)
 
 ---
 
@@ -146,7 +162,7 @@ GREETING = "Welcome back to Brewly, loyalty member!"
 
 **Keep only the loyalty line.** Delete the other greeting and the three marker lines (`<<<<<<<`, `=======` and `>>>>>>>`). Then save the file, add it, and commit to finish the merge.
 
-**Check:** `./check.sh 7`  🧰 [Toolbox](CHEATSHEET.md#task-9-fix-a-merge-conflict)
+**Check:** `./check.sh 9`  🧰 [Toolbox](CHEATSHEET.md#task-9-fix-a-merge-conflict)
 
 ---
 
@@ -156,7 +172,7 @@ The website says **"BREWLY IS CLOSED. GO HOME."** 😱 Dan changed `banner.txt`,
 
 Undo his commit the safe way, by making a new commit that reverses it. Then push.
 
-**Check:** `./check.sh 8`  🧰 [Toolbox](CHEATSHEET.md#task-10-undo-a-pushed-commit)
+**Check:** `./check.sh 10`  🧰 [Toolbox](CHEATSHEET.md#task-10-undo-a-pushed-commit)
 
 ---
 
@@ -166,7 +182,7 @@ Dan's branch `dan/experiments` is full of silly ideas (drones 🚁, blockchain).
 
 Copy **just that one commit** onto `main`. Don't bring in the drones.
 
-**Check:** `./check.sh 9`  🧰 [Toolbox](CHEATSHEET.md#task-11-copy-one-commit)
+**Check:** `./check.sh 11`  🧰 [Toolbox](CHEATSHEET.md#task-11-copy-one-commit)
 
 ---
 
@@ -176,7 +192,7 @@ Switch to `feature/reports`. It has never been pushed. Dan added 2 junk commits 
 
 Delete those 2 commits **and** their changes, so the branch ends on **"Add weekly report"**.
 
-**Check:** `./check.sh 10`  🧰 [Toolbox](CHEATSHEET.md#task-12-throw-away-local-commits)
+**Check:** `./check.sh 12`  🧰 [Toolbox](CHEATSHEET.md#task-12-throw-away-local-commits)
 
 ---
 
@@ -186,7 +202,7 @@ Switch to `feature/search`. Tom has 4 messy commits: `add search`, `wip`, `fix`,
 
 Turn them into **one** commit called **"Add menu search"**. The code itself mustn't change.
 
-**Check:** `./check.sh 11`  🧰 [Toolbox](CHEATSHEET.md#task-13-squash-messy-commits)
+**Check:** `./check.sh 13`  🧰 [Toolbox](CHEATSHEET.md#task-13-squash-messy-commits)
 
 ---
 
@@ -198,55 +214,62 @@ Undo the whole merge the safe way, then push.
 
 > A merge commit has **two parents**, so Git needs you to say which side to keep. You want to keep `main`, which is parent **1**.
 
-**Check:** `./check.sh 12`  🧰 [Toolbox](CHEATSHEET.md#task-14-undo-a-merge)
+**Check:** `./check.sh 14`  🧰 [Toolbox](CHEATSHEET.md#task-14-undo-a-merge)
 
 ---
 
-## 🟠 Task 15: Rebase, then merge
+## 🟠 Task 15: Rebase onto the team's main
 
-Tom's branch `feature/hot-chocolate` started from an **old** version of `main`. Since then, `main` has moved on with lots of your fixes.
+Last week you started your own branch, `feature/hot-chocolate`. It has 2 commits and you **haven't pushed it yet**. While you were busy, your teammates kept pushing to `main` on GitHub.
 
-**Rebase** picks up Tom's commits and replays them on top of the **latest** `main`, as if he'd started today.
+Before you open a pull request, the team's rule is: *"Rebase your branch onto the latest `main`, so it's up to date and the history stays a straight line."*
 
-1. Before you start, look at the picture: `git log --oneline --graph --all`
-2. Switch to `feature/hot-chocolate`.
-3. Rebase it onto `main`.
-4. Switch back to `main` and merge `feature/hot-chocolate`.
-5. 👀 Look at what Git prints: it says **"Fast-forward"**. No merge commit was needed.
-6. Look at the picture again: `git log --oneline --graph -6`. It's a straight line.
+1. **Your teammate pushes.** Run `./teammate-push.sh`. This pretends Priya just pushed a new commit, **"Add seasonal menu"**, to `main` on GitHub. 📣
+2. Back in `brewly`, run `git log --oneline -1 origin/main`. No seasonal menu? Right, because your laptop doesn't know about it yet.
+3. **Fetch** the latest from origin, then run `git log --oneline -1 origin/main` again. There it is.
+4. 👀 Look at the picture: `git log --oneline --graph --all -12`. Your branch sprouts from an **old** point, far below `origin/main`.
+5. Switch to `feature/hot-chocolate`.
+6. **Rebase** it onto `origin/main`.
+7. 👀 Look again: `git log --oneline --graph -4`. Your 2 commits now sit **straight on top of** Priya's "Add seasonal menu", as if you'd started today.
+8. Push your branch to GitHub. It's the first push, so remember `-u`.
+9. On **github.com**, switch to `feature/hot-chocolate`. GitHub says it's **2 commits ahead of main** and **0 behind**, so it's ready for a pull request.
 
-> ⚠️ Rule: only rebase branches that **only you** have. Rebasing changes commit IDs.
+> ⚠️ **The rebase rule:** rebase gives your commits **new IDs**. That's fine here because you hadn't pushed the branch yet. Never rebase a branch other people are already using.
 
-**Check:** `./check.sh 13`  🧰 [Toolbox](CHEATSHEET.md#task-15-rebase-then-merge)
+**Check:** `./check.sh 15`  🧰 [Toolbox](CHEATSHEET.md#task-15-rebase-onto-the-teams-main)
 
 ---
 
-## 🟠 Task 16: Merge without rebase
+## 🟠 Task 16: Update a branch with merge
 
-Priya's branch `feature/iced-coffee` **also** started from the old `main`. This time, **don't rebase**. Just merge it.
+You have another unpushed branch, `feature/iced-coffee`. It's also behind `main`. Some teams prefer **merge** over rebase to bring a branch up to date. Let's try that and compare.
 
-1. Make sure you're on `main`.
-2. Merge `feature/iced-coffee`. An editor opens with a message already written. Save and close it (in vim, type `:wq` and press Enter).
-3. 👀 This time Git says **"Merge made by..."**. It created a **merge commit**.
-4. Look at the picture: `git log --oneline --graph -8`
+1. Switch to `feature/iced-coffee`.
+2. You already fetched in Task 15, so `origin/main` is up to date. This time **merge** `origin/main` into your branch, instead of rebasing. An editor opens with a message already written. Save and close it (in vim, type `:wq` and press Enter).
+3. 👀 Look: `git log --oneline --graph -5`. There's a new **merge commit**: *"Merge remote-tracking branch 'origin/main' into feature/iced-coffee"*.
+4. Push the branch to GitHub (`-u` again).
+5. On github.com, open the **commits** list of each branch and compare them.
 
 **Spot the difference:**
 ```
-*   Merge branch 'feature/iced-coffee'     ← Task 16: merge commit, two lines join
-|\
-| * Add ice options
-| * Add iced coffee
-* | Add marshmallow topping               ← Task 15: rebased, straight line
-* | Add hot chocolate
+REBASE (Task 15): straight line          MERGE (Task 16): lines join
+* Add marshmallow topping                *   Merge remote-tracking branch 'origin/main'...
+* Add hot chocolate                      |\
+* Add seasonal menu    ← Priya           | * Add seasonal menu   ← Priya
+* Add contributing guide                 | * Add contributing guide
+                                         * | Add ice options
+                                         * | Add iced coffee
 ```
 
 | | Rebase (Task 15) | Merge (Task 16) |
 |---|---|---|
 | History | One straight line | Lines join with a merge commit |
-| Commit IDs | **Change** (new copies) | Stay the same |
-| Safe on shared branches? | ❌ No | ✅ Yes |
+| Your commit IDs | **Change** (new copies) | Stay the same |
+| Extra commit? | No | Yes, a merge commit |
+| Safe if others already use the branch? | ❌ No | ✅ Yes |
+| Typical team use | Tidy up your **own** branch before a PR | Update a **shared** branch |
 
-**Check:** `./check.sh 14`  🧰 [Toolbox](CHEATSHEET.md#task-16-merge-without-rebase)
+**Check:** `./check.sh 16`  🧰 [Toolbox](CHEATSHEET.md#task-16-update-a-branch-with-merge)
 
 ---
 
@@ -256,7 +279,7 @@ In a real job you **never** push straight to `main`. You push a branch and open 
 
 This task happens in **your own GitHub copy of this lab** (the `git-rescue-lab` folder, not `brewly`).
 
-1. Go to your lab folder: `cd` to the `git-rescue-lab` folder you cloned.
+1. Go up to your lab folder: `cd ../..` (run `pwd` to check you're in `git-rescue-lab`).
 2. Make sure you're up to date: `git switch main`, then `git pull`.
 3. Create a branch called `add-my-name`.
 4. Open `GRADUATES.md` and add a line: `- Your Name`. Save, add and commit it.
@@ -267,7 +290,7 @@ This task happens in **your own GitHub copy of this lab** (the `git-rescue-lab` 
 9. Click **Merge pull request**, then **Confirm merge**. Then click **Delete branch**.
 10. Back in your terminal, bring the merged work down: `git switch main`, then `git pull`.
 
-**Check:** `./check.sh 15`  🧰 [Toolbox](CHEATSHEET.md#task-17-your-first-pull-request)
+**Check:** `./check.sh 17` (you're in the lab folder now)  🧰 [Toolbox](CHEATSHEET.md#task-17-your-first-pull-request)
 
 ---
 

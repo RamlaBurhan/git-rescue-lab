@@ -8,7 +8,8 @@
 # =============================================================================
 set -euo pipefail
 
-LAB_DIR="${LAB_DIR:-$HOME/brewly-lab}"
+LAB_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"   # the git-rescue-lab folder
+LAB_DIR="${LAB_DIR:-$LAB_HOME/brewly-lab}"
 REPO="$LAB_DIR/brewly"
 ORIGIN="$LAB_DIR/origin.git"
 STATE="$LAB_DIR/.lab-state"
@@ -55,6 +56,7 @@ sha() { if command -v sha256sum >/dev/null 2>&1; then printf '%s' "$1" | sha256s
 PRIYA="Priya Shah|priya@brewly.dev"
 TOM="Tom Okafor|tom@brewly.dev"
 DAN="Dan Mercer|dan@brewly.dev"
+ME="$(git config user.name 2>/dev/null || echo You)|$(git config user.email 2>/dev/null || echo you@brewly.dev)"
 
 T=1761980400   # 1 Nov 2025 07:00 UTC; every commit is 1h later (deterministic history)
 G() { git -c commit.gpgsign=false -c tag.gpgsign=false -c core.hooksPath=/dev/null "$@"; }
@@ -68,8 +70,6 @@ commit() { G add -A; as "$1" commit -q -m "$2"; }
 
 mkdir -p "$LAB_DIR"
 G init -q --bare "$ORIGIN"
-G init -q --bare "$LAB_DIR/backup.git"
-G --git-dir="$LAB_DIR/backup.git" symbolic-ref HEAD refs/heads/main
 G --git-dir="$ORIGIN" symbolic-ref HEAD refs/heads/main
 G init -q "$REPO"
 cd "$REPO"
@@ -324,18 +324,18 @@ commit "$DAN" "debug: print everything"
 echo "DEBUG DEBUG DEBUG" > debug.log
 commit "$DAN" "more debug"
 
-# feature/hot-chocolate + feature/iced-coffee: both start from an OLD main (local only)
+# YOUR two feature branches, started last week from an older main (never pushed)
 G switch -q -c feature/hot-chocolate "$BRANCH_POINT"
 echo 'HOT_CHOCOLATE = 3.20' > hot_chocolate.py
-commit "$TOM" "Add hot chocolate"
+commit "$ME" "Add hot chocolate"
 echo 'TOPPINGS = ["marshmallow", "cream"]' >> hot_chocolate.py
-commit "$TOM" "Add marshmallow topping"
+commit "$ME" "Add marshmallow topping"
 HOT_TIP=$(G rev-parse HEAD)
 G switch -q -c feature/iced-coffee "$BRANCH_POINT"
 echo 'ICED_COFFEE = 3.30' > iced_coffee.py
-commit "$PRIYA" "Add iced coffee"
+commit "$ME" "Add iced coffee"
 echo 'ICE_LEVELS = ["light", "normal", "extra"]' >> iced_coffee.py
-commit "$PRIYA" "Add ice options"
+commit "$ME" "Add ice options"
 ICED_TIP=$(G rev-parse HEAD)
 
 # one unpushed commit on main
@@ -371,7 +371,7 @@ ICED_TIP=$ICED_TIP
 EOF
 
 # --- real GitHub mode: copy everything up and point origin at GitHub --------
-WHERE="$ORIGIN   (a stand-in GitHub on your laptop)"
+WHERE="$ORIGIN   (a stand-in GitHub on your laptop)"; BACKUP_HINT=""
 if [ -n "$GITHUB_URL" ]; then
   echo "Pushing Brewly's history to GitHub (you may be asked to log in)..."
   G --git-dir="$ORIGIN" push -q --force "$GITHUB_URL" 'refs/heads/*:refs/heads/*' 'refs/tags/*:refs/tags/*'
@@ -385,7 +385,42 @@ if [ -n "$GITHUB_URL" ]; then
   done
   rm -rf "$ORIGIN"
   WHERE="$GITHUB_URL   (real GitHub)"
+
+  # second remote for Task 6: <name>-backup next to the main repo
+  case "$GITHUB_URL" in *.git) BACKUP_URL="${GITHUB_URL%.git}-backup.git" ;; *) BACKUP_URL="$GITHUB_URL-backup" ;; esac
+  if GIT_TERMINAL_PROMPT=0 G ls-remote "$BACKUP_URL" >/dev/null 2>&1; then
+    # it exists already (e.g. --force reset): put it back to the starting point
+    if [ -n "$(G ls-remote --heads "$BACKUP_URL" 2>/dev/null)" ]; then
+      G push -q --force "$BACKUP_URL" "$MAIN_PUSHED:refs/heads/main" 2>/dev/null || true
+      for r in $(G ls-remote --heads "$BACKUP_URL" | awk '{print $2}'); do
+        [ "$r" = refs/heads/main ] || G push -q "$BACKUP_URL" ":$r" 2>/dev/null || true
+      done
+    fi
+    BACKUP_HINT="$BACKUP_URL"
+  else
+    SLUG=$(printf '%s' "$BACKUP_URL" | sed -E 's#^(https://github\.com/|git@github\.com:)##; s#\.git$##')
+    if command -v gh >/dev/null 2>&1 && gh repo create "$SLUG" --private >/dev/null 2>&1; then
+      BACKUP_HINT="$BACKUP_URL   (created for you)"
+    else
+      BACKUP_HINT="$BACKUP_URL   ⚠️ couldn't create it - run: gh repo create $SLUG --private"
+    fi
+  fi
+else
+  G init -q --bare "$LAB_DIR/backup.git"; G --git-dir="$LAB_DIR/backup.git" symbolic-ref HEAD refs/heads/main
+  BACKUP_URL="$LAB_DIR/backup.git"
+  BACKUP_HINT="$BACKUP_URL"
 fi
+echo "$BACKUP_URL" > "$LAB_DIR/backup-url.txt"
+
+# --- shortcuts so you can run ./check.sh and ./teammate-push.sh from inside brewly
+for tool in check.sh teammate-push.sh; do
+  [ "$LAB_HOME/$tool" -ef "$REPO/$tool" ] && { echo "internal error: shortcut would point to itself"; exit 1; }
+  printf '#!/usr/bin/env bash\n# shortcut to the real script in the lab folder\nLAB_DIR="%s" exec "%s/%s" "$@"\n' "$LAB_DIR" "$LAB_HOME" "$tool" > "$REPO/$tool"
+  chmod +x "$REPO/$tool"
+  echo "$tool" >> "$REPO/.git/info/exclude"     # Git ignores the shortcuts
+done
+echo "backup-url.txt" >> "$REPO/.git/info/exclude"
+cp "$LAB_DIR/backup-url.txt" "$REPO/backup-url.txt"
 
 cat <<EOF
 
@@ -393,12 +428,13 @@ cat <<EOF
 
   Your repo:        $REPO
   origin:           $WHERE
-  Backup remote:    $LAB_DIR/backup.git   (you'll need this in Task 6)
+  Backup remote:    $BACKUP_HINT
+                    (saved as backup-url.txt inside brewly for Task 6)
   Cheat sheet:      CHEATSHEET.md
 
   Next:   cd $REPO
           git status
   Then open TASKS.md and start at Task 1.
-  Check your work any time:   ./check.sh 1    (or ./check.sh all)
+  Check your work any time (from inside brewly):   ./check.sh 1    (or ./check.sh all)
 
 EOF

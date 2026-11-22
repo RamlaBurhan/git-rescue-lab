@@ -5,7 +5,7 @@
 #          ./check.sh 1 2 3    check several
 #          ./check.sh all      check everything
 # =============================================================================
-LAB_DIR="${LAB_DIR:-$HOME/brewly-lab}"
+LAB_DIR="${LAB_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/brewly-lab}"
 REPO="$LAB_DIR/brewly"
 ORIGIN="$LAB_DIR/origin.git"
 STATE="$LAB_DIR/.lab-state"
@@ -78,10 +78,17 @@ check_5() {
 check_6() {
   url=$(git remote get-url backup 2>/dev/null)
   [ -n "$url" ]                                   || { why "No remote called 'backup' (git remote -v to see your remotes)"; return; }
-  b="$LAB_DIR/backup.git"
+  [ "$url" = "$(git remote get-url origin 2>/dev/null)" ] && { why "backup points at the SAME repo as origin - it should be a second repo"; return; }
+  if [ -d "$url" ]; then b="$url"
+  else
+    b="$LAB_DIR/.backup-cache.git"; [ -d "$b" ] || git init -q --bare "$b"
+    git --git-dir="$b" fetch -q --prune --force "$url" '+refs/heads/*:refs/heads/*' 2>/dev/null \
+      || { why "Couldn't reach $url - did you create the brewly-backup repo on GitHub?"; return; }
+  fi
   bm=$(git --git-dir="$b" rev-parse -q --verify main 2>/dev/null)
   [ -n "$bm" ]                                    || { why "backup doesn't have a main branch yet - push main to it"; return; }
-  git --git-dir="$b" merge-base --is-ancestor "$INITIAL_MAIN" main 2>/dev/null || why "backup's main isn't a copy of our main"
+  git --git-dir="$b" merge-base --is-ancestor "$INITIAL_MAIN" main 2>/dev/null || { why "backup's main is behind - push main to backup"; return; }
+  { git cat-file -e "$bm" 2>/dev/null && anc "$bm" main; } || why "backup's main is out of date - push main to backup again"
   git --git-dir="$b" log main --format=%s -- TEAM.md 2>/dev/null | grep -q . || why "backup's main is missing your TEAM.md commit"
 }
 check_7() {
@@ -126,16 +133,26 @@ check_14() {
   olog | grep -q '^Revert "Merge'                 || why "No revert-of-merge commit on origin/main"
 }
 check_15() {
-  has main:hot_chocolate.py                       || { why "hot_chocolate.py isn't on main yet (rebase, then merge into main)"; return; }
-  c=$(git log --first-parent --format='%H %s' main | grep ' Add marshmallow topping$' | head -1 | cut -d' ' -f1)
-  [ -n "$c" ]                                     || why "main got a merge commit - rebase first so the merge is a fast-forward"
-  [ "$c" = "$HOT_TIP" ]                           && why "feature/hot-chocolate was never rebased onto main"
+  [ -n "${TEAMMATE_COMMIT:-}" ]                   || { why "Step 1: run ./teammate-push.sh so Priya pushes to main"; return; }
+  b=feature/hot-chocolate
+  [ -n "$(orev "$b")" ]                           || { why "$b isn't on origin yet - push it (first push needs -u)"; return; }
+  oanc "$TEAMMATE_COMMIT" "$b"                    || why "$b doesn't include Priya's new commit - fetch, then rebase onto origin/main"
+  [ -z "$(git --git-dir="$ORIGIN" rev-list --merges "$TEAMMATE_COMMIT..$b" 2>/dev/null)" ] || why "$b has a merge commit - use rebase this time"
+  [ "$(git --git-dir="$ORIGIN" rev-list --count "$TEAMMATE_COMMIT..$b" 2>/dev/null)" = "2" ] \
+                                                  || why "Expected your 2 hot chocolate commits sitting right on top of origin/main"
+  [ "$(git rev-parse --abbrev-ref "$b@{upstream}" 2>/dev/null)" = "origin/$b" ] || why "$b isn't tracking origin (push with -u)"
 }
 check_16() {
-  anc "$ICED_TIP" main                            || { why "feature/iced-coffee is not merged into main"; return; }
+  [ -n "${TEAMMATE_COMMIT:-}" ]                   || { why "Run ./teammate-push.sh first (Task 15, step 1)"; return; }
+  b=feature/iced-coffee
+  [ -n "$(orev "$b")" ]                           || { why "$b isn't on origin yet - push it (first push needs -u)"; return; }
+  oanc "$ICED_TIP" "$b"                           || why "Your original commits were rewritten - this time merge, don't rebase"
+  oanc "$TEAMMATE_COMMIT" "$b"                    || why "$b doesn't include Priya's new commit - fetch, then merge origin/main"
   ok=""
-  for m in $(git rev-list --merges main); do [ "$(rev "$m^2")" = "$ICED_TIP" ] && ok=1; done
-  [ -n "$ok" ]                                    || why "No merge commit for iced-coffee - merge it WITHOUT rebasing"
+  for m in $(git --git-dir="$ORIGIN" rev-list --merges "$ICED_TIP..$b" 2>/dev/null); do
+    [ "$(git --git-dir="$ORIGIN" rev-parse "$m^1")" = "$ICED_TIP" ] && ok=1
+  done
+  [ -n "$ok" ]                                    || why "No merge commit bringing origin/main into $b"
 }
 check_17() {
   git -C "$LAB_REPO" rev-parse --git-dir >/dev/null 2>&1 || { why "Clone YOUR GitHub copy of the lab (don't download a zip)"; return; }
@@ -154,7 +171,7 @@ TITLES=( ""
   "Finish a teammate's branch" "Bring back a deleted file"
   "Fix a merge conflict" "Undo a pushed commit" "Copy one commit"
   "Throw away local commits" "Squash messy commits" "Undo a merge"
-  "Rebase, then merge" "Merge without rebase" "Your first pull request" )
+  "Rebase onto the team's main" "Update a branch with merge" "Your first pull request" )
 
 [ $# -eq 0 ] && { echo "Usage: ./check.sh <task number(s)> | all"; exit 1; }
 [ "$1" = "all" ] && set -- $(seq 1 $LAST)
